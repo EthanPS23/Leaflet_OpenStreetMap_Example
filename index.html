@@ -35,29 +35,35 @@
 
             mymap.on('click', onMapClick);
 
-            var myStyle = {
+            var avyCanadaLayerStyle = {
                 "color": "#ff00ff",
                 "weight": 2.5,
                 "opacity": 0.65
             };
 
+            var acisMarkerStyle = {
+                "color": "#ff0000"
+            };
+
             $.getJSON( "https://avalanche.ca/api/forecasts", function(data) {
                 L.geoJson(data,{
-                    style: myStyle,
+                    style: avyCanadaLayerStyle,
                     onEachFeature: function (feature, layer) {
                         layer.on('mouseover', function () {
-                        this.setStyle({
-                            'fillColor': '#ff55ff'
+                            this.setStyle({
+                                'fillColor': '#ff55ff'
+                            });
                         });
-                        });
+
                         layer.on('mouseout', function () {
-                        this.setStyle({
-                            'fillColor': '#ff00ff'
+                            this.setStyle({
+                                'fillColor': '#ff00ff'
+                            });
                         });
-                        });
+
                         layer.on('click', function () {
-                        // Let's say you've got a property called url in your geojsonfeature:
-                        window.location = feature.properties.url;
+                            // Let's say you've got a property called url in your geojsonfeature:
+                            window.location = feature.properties.url;
                         });
                         //layer.bindTooltip(feature.properties.name, {permanent: true, opacity: 0.7, offset: L.point(0, -20)}).openTooltip();
                         layer.bindTooltip(feature.properties.name, {sticky: true});
@@ -85,11 +91,24 @@
 
                 var geoJson = { type: 'FeatureCollection', features: jsonFeatures };
 
-                L.geoJson(geoJson).addTo(mymap);
+                L.geoJson(geoJson,{
+                    onEachFeature: function(feature,layer){
+                        layer.on('click', function(){
+                            window.location = "https://www.avalanche.ca/weather/stations/" + feature.properties.stationId;
+                        });
+                    }
+                }).addTo(mymap);
             })
 
             $.getJSON("http://localhost/stationsGEO.json", function(data){
-                L.geoJSON(data).addTo(mymap);
+                L.geoJSON(data, {
+                    style: acisMarkerStyle,
+                    onEachFeature: function (feature,layer){
+                        layer.on('click', function(){
+                            window.location = feature.properties.url;   
+                        });
+                    }
+                }).addTo(mymap);
             })
         </script>
     </body>
