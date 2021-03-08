@@ -41,9 +41,12 @@
                 "opacity": 0.65
             };
 
-            var acisMarkerStyle = {
-                "color": "#ff0000"
-            };
+            var avyCanadaWeatherStations = L.icon({
+                    iconUrl: "https://www.avalanche.ca/static/media/weather-station.473b0079.svg",
+
+                    iconSize: [30,41],
+                    iconAnchor: [20,15]
+            });
 
             $.getJSON( "https://avalanche.ca/api/forecasts", function(data) {
                 L.geoJson(data,{
@@ -92,7 +95,12 @@
                 var geoJson = { type: 'FeatureCollection', features: jsonFeatures };
 
                 L.geoJson(geoJson,{
+                    pointToLayer: function(feature, latlng) {
+                        return L.marker(latlng, {icon: avyCanadaWeatherStations});
+                    },
                     onEachFeature: function(feature,layer){
+                        layer.bindTooltip(feature.properties.name, {sticky: true});
+
                         layer.on('click', function(){
                             window.location = "https://www.avalanche.ca/weather/stations/" + feature.properties.stationId;
                         });
@@ -102,8 +110,9 @@
 
             $.getJSON("http://localhost/stationsGEO.json", function(data){
                 L.geoJSON(data, {
-                    style: acisMarkerStyle,
                     onEachFeature: function (feature,layer){
+                        layer.bindTooltip(feature.properties.name, {sticky: true});
+
                         layer.on('click', function(){
                             window.location = feature.properties.url;   
                         });
