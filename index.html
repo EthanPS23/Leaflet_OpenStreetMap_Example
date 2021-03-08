@@ -3,14 +3,30 @@
     <head>
         <title>Leaflet Example Page</title>
         <meta charset="utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- tell the mobile browser to disable unwanted scaling of the page and it to its actual size-->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> 
+
+
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
         <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
         <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
     </head>
-    <body>
 
-        <div id="mapid" style="width: 1280px; height: 720px;"></div>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #mapid {
+            height: 100%;
+            width: 100vw;
+        }
+    </style>
+
+    <body style="height:100%;">
+
+        <!-- <div id="mapid" style="width: 1280px; height: 720px;"></div> -->
+        <div id="mapid"></div>
         
 
         <script>
@@ -42,12 +58,20 @@
             };
 
             var avyCanadaWeatherStations = L.icon({
-                    iconUrl: "https://www.avalanche.ca/static/media/weather-station.473b0079.svg",
+                iconUrl: "https://www.avalanche.ca/static/media/weather-station.473b0079.svg",
 
-                    iconSize: [30,41],
-                    iconAnchor: [20,15]
+                iconSize: [30,41],
+                iconAnchor: [15,20]
             });
 
+            var avyCanadaMINReports = L.icon({
+                iconUrl: "https://www.avalanche.ca/static/media/min-pin.6db47641.svg",
+
+                iconSize: [30,41],
+                iconAnchor: [15,20]
+            })
+            
+            // Display the Avalanche Canada avy areas on the map
             $.getJSON( "https://avalanche.ca/api/forecasts", function(data) {
                 L.geoJson(data,{
                     style: avyCanadaLayerStyle,
@@ -75,14 +99,51 @@
                 }).addTo(mymap);
             })
 
+            // Display avy Canada MIN reports on the map (This is temporarily obtain from a specified date range. This is to be
+            // later changed to use the current date minus 7 days or x days)
+            $.getJSON("https://api.avalanche.ca/min/en/submissions?fromdate=2021-02-28&todate=2021-03-07&pagesize=1000", function(dataSubs){
+                var jsonFeatures = [];
+                dataSubs = JSON.parse(JSON.stringify(dataSubs.items.data));
+                dataSubs.forEach(element => {
+                    var lat = element.location.latitude;
+                    var lon = element.location.longitude;
 
+                    var feature = {
+                        type: 'Feature',
+                        properties: element,
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [lon,lat]
+                        }
+                    };
+                    jsonFeatures.push(feature);
+                });
+
+                var geoJson = { type: 'FeatureCollection', features: jsonFeatures };
+
+                L.geoJson(geoJson,{
+                    pointToLayer: function (feature,latlng) {
+                        return L.marker(latlng, {icon: avyCanadaMINReports});
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.bindTooltip(feature.properties.title, {sticky: true});
+
+                        layer.on('click', function(){
+                            window.location = "https://www.avalanche.ca/mountain-information-network/submissions/" + feature.properties.id;
+                        });
+                    }
+                }).addTo(mymap);
+            })
+
+            // Display avy Canada weather stations on the map
             $.getJSON("https://api.avalanche.ca/weather/stations", function(data){
                 var jsonFeatures = [];
                 data.forEach(element => {
                     var lat = element.latitude;
                     var lon = element.longitude;
 
-                    var feature = {type: 'Feature',
+                    var feature = {
+                        type: 'Feature',
                         properties: element,
                         geometry: {
                             type: 'Point',
@@ -108,6 +169,7 @@
                 }).addTo(mymap);
             })
 
+            // Display ACIS weather stations on the map
             $.getJSON("http://localhost/stationsGEO.json", function(data){
                 L.geoJSON(data, {
                     onEachFeature: function (feature,layer){
