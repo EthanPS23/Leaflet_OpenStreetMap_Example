@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Leaflet Example Page</title>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+        <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+    </head>
+    <body>
+
+        <div id="mapid" style="width: 1280px; height: 720px;"></div>
+        
+
+        <script>
+            var mymap = L.map('mapid').setView([51.0447, -114.0719], 10);
+
+            L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{
+                minZoom: 3,
+                maxZoom: 17,
+                detectRetina: false,
+                attribution: 'Kartendaten: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende, SRTM ' +
+                    '| Kartendarstellung: © <a href="https://opentopomap.org/">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+            }).addTo(mymap);
+
+            var popup = L.popup();
+
+            function onMapClick(e) {
+                popup
+                    .setLatLng(e.latlng)
+                    .setContent("You clicked the map at " + e.latlng.toString())
+                    .openOn(mymap);
+            }
+
+            mymap.on('click', onMapClick);
+
+            var myStyle = {
+                "color": "#ff00ff",
+                "weight": 2.5,
+                "opacity": 0.65
+            };
+
+            $.getJSON( "https://avalanche.ca/api/forecasts", function(data) {
+                L.geoJson(data,{
+                    style: myStyle,
+                    onEachFeature: function (feature, layer) {
+                        layer.on('mouseover', function () {
+                        this.setStyle({
+                            'fillColor': '#ff55ff'
+                        });
+                        });
+                        layer.on('mouseout', function () {
+                        this.setStyle({
+                            'fillColor': '#ff00ff'
+                        });
+                        });
+                        layer.on('click', function () {
+                        // Let's say you've got a property called url in your geojsonfeature:
+                        window.location = feature.properties.url;
+                        });
+                        //layer.bindTooltip(feature.properties.name, {permanent: true, opacity: 0.7, offset: L.point(0, -20)}).openTooltip();
+                        layer.bindTooltip(feature.properties.name, {sticky: true});
+                        // layer.bindTooltip(feature.properties.name);
+                    }
+                }).addTo(mymap);
+            })
+
+
+            $.getJSON("https://api.avalanche.ca/weather/stations", function(data){
+                var jsonFeatures = [];
+                data.forEach(element => {
+                    var lat = element.latitude;
+                    var lon = element.longitude;
+
+                    var feature = {type: 'Feature',
+                        properties: element,
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [lon,lat]
+                        }
+                    };
+                    jsonFeatures.push(feature);
+                });
+
+                var geoJson = { type: 'FeatureCollection', features: jsonFeatures };
+
+                L.geoJson(geoJson).addTo(mymap);
+            })
+
+            $.getJSON("http://localhost/stationsGEO.json", function(data){
+                L.geoJSON(data).addTo(mymap);
+            })
+        </script>
+    </body>
+</html>
