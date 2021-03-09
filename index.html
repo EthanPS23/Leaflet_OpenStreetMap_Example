@@ -96,6 +96,31 @@
                 }
             }
             ////////////////////////////////////////////////////////////////
+
+            // Function to get date
+            function formatDate(date) {
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2) 
+                    month = '0' + month;
+                if (day.length < 2) 
+                    day = '0' + day;
+
+                return [year, month, day].join('-');
+            }
+
+            var todaysDate = new Date();
+
+            var last7days = new Date();
+            last7days.setDate(todaysDate.getDate()-7);
+            todaysDate = formatDate(todaysDate);
+
+            last7days = formatDate(last7days);
+
+            var avyCanadaMIN_URL = "https://api.avalanche.ca/min/en/submissions?fromdate=" + last7days + "&todate=" + todaysDate + "&pagesize=1000";
             
             // Display the Avalanche Canada avy areas on the map
             $.getJSON( "https://avalanche.ca/api/forecasts", function(data) {
@@ -132,9 +157,8 @@
                 }).addTo(mymap);
             })
 
-            // Display avy Canada MIN reports on the map (This is temporarily obtain from a specified date range. This is to be
-            // later changed to use the current date minus 7 days or x days)
-            $.getJSON("https://api.avalanche.ca/min/en/submissions?fromdate=2021-02-28&todate=2021-03-07&pagesize=1000", function(dataSubs){
+            // Display avy Canada MIN reports on the map 
+            $.getJSON(avyCanadaMIN_URL, function(dataSubs){
                 var clusters = L.markerClusterGroup();
                 var jsonFeatures = [];
                 dataSubs = JSON.parse(JSON.stringify(dataSubs.items.data));
