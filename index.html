@@ -91,7 +91,15 @@
             // function that creates popup content
             function createPopupContent(values) {
                 return function(){
-                    return '<a href="' + values.properties.url + '">' + values.properties.name + '</a><p>' +
+                    var url = "";
+
+                    // Check to see if the value contains an externalUrl, if not use default url, if it does use externalUrl
+                    if (values.properties.externalUrl == null) {
+                        url = values.properties.url;
+                    }else{
+                        url = values.properties.externalUrl;
+                    }
+                    return '<a href="' + url + '">' + values.properties.name + '</a><p>' +
                             'You clicked the map at ' + clickedLatLng.lat.toFixed(6) + ', ' + clickedLatLng.lng.toFixed(6)
                 }
             }
