@@ -70,6 +70,25 @@
                 iconSize: [30,41],
                 iconAnchor: [15,20]
             })
+
+            ////////////////////////////////////////////////////////////////
+            // This section of code is used to get the onclick location coordinates of and avy area for a popup
+            // variable to store coordinates of click
+            var clickedLatLng = {lat: null, lng: null};
+
+            // function called when line is clicked
+            function onPolyClick(e){
+                clickedLatLng = e.latlng;
+            }
+
+            // function that creates popup content
+            function createPopupContent(values) {
+                return function(){
+                    return '<a href="' + values.properties.url + '">' + values.properties.name + '</a><p>' +
+                            'You clicked the map at ' + clickedLatLng.lat.toFixed(6) + ', ' + clickedLatLng.lng.toFixed(6)
+                }
+            }
+            ////////////////////////////////////////////////////////////////
             
             // Display the Avalanche Canada avy areas on the map
             $.getJSON( "https://avalanche.ca/api/forecasts", function(data) {
@@ -88,10 +107,17 @@
                             });
                         });
 
-                        layer.on('click', function () {
-                            // Let's say you've got a property called url in your geojsonfeature:
-                            window.location = feature.properties.url;
-                        });
+                        // layer.on('click', function () {
+                        //     // Let's say you've got a property called url in your geojsonfeature:
+                        //     window.location = feature.properties.url;
+                        // });
+
+                        layer.on('click',onPolyClick);
+
+                        layer.bindPopup(
+                            createPopupContent(feature)
+                        );
+
                         //layer.bindTooltip(feature.properties.name, {permanent: true, opacity: 0.7, offset: L.point(0, -20)}).openTooltip();
                         layer.bindTooltip(feature.properties.name, {sticky: true});
                         // layer.bindTooltip(feature.properties.name);
