@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Leaflet Example Page</title>
+
         <meta charset="utf-8"/>
         <!-- tell the mobile browser to disable unwanted scaling of the page and it to its actual size-->
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> 
@@ -10,6 +11,12 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
         <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
         <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+        
+        
+        <!-- Leaflet.markercluster assets -->
+        <link rel="stylesheet" href="http://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css">
+        <link rel="stylesheet" href="http://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.Default.css">
+        <script src="http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js"></script>
     </head>
 
     <style>
@@ -128,6 +135,7 @@
             // Display avy Canada MIN reports on the map (This is temporarily obtain from a specified date range. This is to be
             // later changed to use the current date minus 7 days or x days)
             $.getJSON("https://api.avalanche.ca/min/en/submissions?fromdate=2021-02-28&todate=2021-03-07&pagesize=1000", function(dataSubs){
+                var clusters = L.markerClusterGroup();
                 var jsonFeatures = [];
                 dataSubs = JSON.parse(JSON.stringify(dataSubs.items.data));
                 dataSubs.forEach(element => {
@@ -147,22 +155,27 @@
 
                 var geoJson = { type: 'FeatureCollection', features: jsonFeatures };
 
-                L.geoJson(geoJson,{
+                var marks = L.geoJson(geoJson,{
                     pointToLayer: function (feature,latlng) {
                         return L.marker(latlng, {icon: avyCanadaMINReports});
                     },
                     onEachFeature: function (feature, layer) {
                         layer.bindTooltip(feature.properties.title, {sticky: true});
 
+                        layer.addTo(clusters);
+
                         layer.on('click', function(){
                             window.location = "https://www.avalanche.ca/mountain-information-network/submissions/" + feature.properties.id;
                         });
                     }
-                }).addTo(mymap);
+                // }).addTo(mymap);
+                });
+                mymap.addLayer(clusters);
             })
 
             // Display avy Canada weather stations on the map
             $.getJSON("https://api.avalanche.ca/weather/stations", function(data){
+                var clusters = L.markerClusterGroup();
                 var jsonFeatures = [];
                 data.forEach(element => {
                     var lat = element.latitude;
@@ -181,32 +194,41 @@
 
                 var geoJson = { type: 'FeatureCollection', features: jsonFeatures };
 
-                L.geoJson(geoJson,{
+                var marks = L.geoJson(geoJson,{
                     pointToLayer: function(feature, latlng) {
                         return L.marker(latlng, {icon: avyCanadaWeatherStations});
                     },
                     onEachFeature: function(feature,layer){
                         layer.bindTooltip(feature.properties.name, {sticky: true});
 
+                        layer.addTo(clusters);
+
                         layer.on('click', function(){
                             window.location = "https://www.avalanche.ca/weather/stations/" + feature.properties.stationId;
                         });
                     }
-                }).addTo(mymap);
+                // }).addTo(mymap);
+                });
+                mymap.addLayer(clusters);
             })
 
             // Display ACIS weather stations on the map
             $.getJSON("http://localhost/stationsGEO.json", function(data){
-                L.geoJSON(data, {
+                var clusters = L.markerClusterGroup();
+                var marks = L.geoJSON(data, {
                     onEachFeature: function (feature,layer){
                         layer.bindTooltip(feature.properties.name, {sticky: true});
+
+                        layer.addTo(clusters);
 
                         layer.on('click', function(){
                             window.location = feature.properties.url;   
                         });
                     }
-                }).addTo(mymap);
-            })
+                //}).addTo(mymap);
+                });
+                mymap.addLayer(clusters);
+            });
         </script>
     </body>
 </html>
