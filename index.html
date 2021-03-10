@@ -60,8 +60,10 @@
 
             var avyCanadaLayerStyle = {
                 "color": "#ff00ff",
+                "fillcolor": "#000000",
+                "fillOpacity": 0,
                 "weight": 2.5,
-                "opacity": 0.65
+                "opacity": 1
             };
 
             var avyCanadaMCR = L.icon({
@@ -158,13 +160,13 @@
                     onEachFeature: function (feature, layer) {
                         layer.on('mouseover', function () {
                             this.setStyle({
-                                'fillColor': '#ff55ff'
+                                'weight': 5.5
                             });
                         });
 
                         layer.on('mouseout', function () {
                             this.setStyle({
-                                'fillColor': '#ff00ff'
+                                'weight': 2.5
                             });
                         });
 
@@ -337,9 +339,13 @@
                             window.location = "https://www.avalanche.ca/weather/stations/" + feature.properties.stationId;
                         });
                     }
-                // }).addTo(mymap);
                 });
-                mymap.addLayer(clusters);
+
+                var mixed = {
+                    "Avalanche Canada Weather Stations": clusters //cluster of avy Canada weather stations
+                }
+
+                L.control.layers(null, mixed).addTo(mymap)
             })
 
             // Display ACIS weather stations on the map
@@ -355,9 +361,13 @@
                             window.location = feature.properties.url;   
                         });
                     }
-                //}).addTo(mymap);
                 });
-                mymap.addLayer(clusters);
+
+                var mixed = {
+                    "ACIS Weather Stations": clusters //cluster of ACIS weather stations
+                }
+
+                L.control.layers(null, mixed).addTo(mymap)
             });
         </script>
     </body>
