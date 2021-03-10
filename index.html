@@ -69,7 +69,14 @@
 
                 iconSize: [30,41],
                 iconAnchor: [15,20]
-            })
+            });
+
+            var avyCanadaFatality = L.icon({
+                iconUrl: "https://www.avalanche.ca/static/media/fatal-accident.692404d6.svg",
+
+                iconSize: [30,41],
+                iconAnchor: [15,20]
+            });
 
             var avyCanadaWeatherStations = L.icon({
                 iconUrl: "https://www.avalanche.ca/static/media/weather-station.473b0079.svg",
@@ -198,6 +205,46 @@
 
                         layer.on('click', function(){
                             window.location = "https://www.avalanche.ca/mountain-information-network/submissions/" + feature.properties.id;
+                        });
+                    }
+                // }).addTo(mymap);
+                });
+                mymap.addLayer(clusters);
+            })
+
+            // Display fatality reports
+            $.getJSON("https://avalancheca.cdn.prismic.io/api/v2/documents/search?page=1&pageSize=100&q=[[:d%20=%20date.after(my.fatal-accident.dateOfAccident,%20%222020-09-30%22)][:d%20=%20date.before(my.fatal-accident.dateOfAccident,%20%222021-10-01%22)]]&ref=YEefDBAAACAAiSgJ",function(dataFat){
+                var clusters = L.markerClusterGroup();
+                var jsonFeatures = [];
+                dataFat = JSON.parse(JSON.stringify(dataFat.results));
+                dataFat.forEach(element =>{
+                    var lat = element.data.location.latitude;
+                    var lon = element.data.location.longitude;
+
+                    var feature = {
+                        type: 'Feature',
+                        properties: element,
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [lon,lat]
+                        }
+                    };
+                    jsonFeatures.push(feature);
+                });
+
+                var geoJson = { type: 'FeatureCollection', features: jsonFeatures };
+
+                var marks = L.geoJson(geoJson,{
+                    pointToLayer: function (feature,latlng) {
+                        return L.marker(latlng, {icon: avyCanadaFatality});
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.bindTooltip(feature.properties.data.title, {sticky: true});
+
+                        layer.addTo(clusters);
+
+                        layer.on('click', function(){
+                            window.location = feature.properties.href;
                         });
                     }
                 // }).addTo(mymap);
