@@ -92,6 +92,13 @@
                 iconAnchor: [15,20]
             })
 
+            var avyCanadaMINReportsIncident = L.icon({
+                iconUrl: "https://www.avalanche.ca/static/media/min-pin-with-incident.be1c702e.svg",
+
+                iconSize: [30,41],
+                iconAnchor: [15,20]
+            })
+
             ////////////////////////////////////////////////////////////////
             // This section of code is used to get the onclick location coordinates of and avy area for a popup
             // variable to store coordinates of click
@@ -196,7 +203,12 @@
 
                 var marks = L.geoJson(geoJson,{
                     pointToLayer: function (feature,latlng) {
-                        return L.marker(latlng, {icon: avyCanadaMINReports});
+                        // check to see if the MIN is an incident, if it is not then use normal MIN icon, if it is, use the MIN incident icon
+                        if (feature.properties.observations.incident == 0) {
+                            return L.marker(latlng, {icon: avyCanadaMINReports});
+                        } else {
+                            return L.marker(latlng, {icon: avyCanadaMINReportsIncident});
+                        }
                     },
                     onEachFeature: function (feature, layer) {
                         layer.bindTooltip(feature.properties.title, {sticky: true});
