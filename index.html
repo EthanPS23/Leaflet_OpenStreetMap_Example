@@ -64,6 +64,13 @@
                 "opacity": 0.65
             };
 
+            var avyCanadaMCR = L.icon({
+                iconUrl: "https://www.avalanche.ca/static/media/mountain-conditions-report.6aa5980a.svg",
+
+                iconSize: [30,41],
+                iconAnchor: [15,20]
+            })
+
             var avyCanadaWeatherStations = L.icon({
                 iconUrl: "https://www.avalanche.ca/static/media/weather-station.473b0079.svg",
 
@@ -147,20 +154,13 @@
                             });
                         });
 
-                        // layer.on('click', function () {
-                        //     // Let's say you've got a property called url in your geojsonfeature:
-                        //     window.location = feature.properties.url;
-                        // });
-
                         layer.on('click',onPolyClick);
 
                         layer.bindPopup(
                             createPopupContent(feature)
                         );
 
-                        //layer.bindTooltip(feature.properties.name, {permanent: true, opacity: 0.7, offset: L.point(0, -20)}).openTooltip();
                         layer.bindTooltip(feature.properties.name, {sticky: true});
-                        // layer.bindTooltip(feature.properties.name);
                     }
                 }).addTo(mymap);
             })
@@ -198,6 +198,45 @@
 
                         layer.on('click', function(){
                             window.location = "https://www.avalanche.ca/mountain-information-network/submissions/" + feature.properties.id;
+                        });
+                    }
+                // }).addTo(mymap);
+                });
+                mymap.addLayer(clusters);
+            })
+
+            // Display the MCRs from avy Canada
+            $.getJSON("https://avalanche.ca/api/mcr/", function(data){
+                var clusters = L.markerClusterGroup();
+                var jsonFeatures = [];
+                data.forEach(element => {
+                    var lat = element.location[1];
+                    var lon = element.location[0];
+
+                    var feature = { 
+                        type: 'Feature',
+                        properties: element,
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [lon,lat]
+                        }
+                    };
+                    jsonFeatures.push(feature);
+                });
+
+                var geoJson = { type: 'FeatureCollection', features: jsonFeatures};
+
+                var marks = L.geoJson(geoJson,{
+                    pointToLayer: function(feature, latlng) {
+                        return L.marker(latlng, {icon: avyCanadaMCR});
+                    },
+                    onEachFeature: function(feature,layer){
+                        layer.bindTooltip(feature.properties.title, {sticky: true});
+
+                        layer.addTo(clusters);
+
+                        layer.on('click', function(){
+                            window.location = feature.properties.permalink;
                         });
                     }
                 // }).addTo(mymap);
