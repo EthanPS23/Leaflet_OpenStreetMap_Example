@@ -181,6 +181,81 @@
                 }).addTo(mymap);
             })
 
+            // Display Avalanche Canada avy area forecast danger on map
+            $.getJSON("https://avalanche.ca/api/forecasts", function(data) {
+                var jsonFeatures = [];
+                data = JSON.parse(JSON.stringify(data.features));
+                data.forEach(element =>{
+                    var lat = element.properties.centroid[1];
+                    var lon = element.properties.centroid[0];
+
+                    var feature = {
+                        type: 'Feature',
+                        properties: element.properties,
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [lon,lat]
+                        }
+                    };
+                    jsonFeatures.push(feature);
+                });
+
+                var geoJson = { type: 'FeatureCollection', features: jsonFeatures};
+
+                var marks = L.geoJson(geoJson,{
+                    pointToLayer: function (feature,latlng) {
+                        avyCanadaRegionRating(feature,latlng);
+                    }
+                });
+            })
+
+            function avyCanadaRegionRating(feature,latlng){
+                var ratings;
+                var combinedRatings;
+                var forecastURL = "https://www.avalanche.ca" + feature.properties.forecastUrl;
+                $.getJSON(forecastURL, function(data){
+                    var testAlp = data.iconSet[0].ratings.alp;
+                    var testTln = data.iconSet[0].ratings.tln;
+                    var testBtl = data.iconSet[0].ratings.btl;
+                    // console.log(testAlp + "-" + testTln + "-" + testBtl + ", " + forecastURL);
+                    combinedRatings = data.iconSet[0].ratings.alp;
+                    combinedRatings = combinedRatings + "-" + data.iconSet[0].ratings.tln;
+                    combinedRatings = combinedRatings + "-" + data.iconSet[0].ratings.btl;
+                    //console.log(combinedRatings + ", " + forecastURL);
+                    ratings = combinedRatings;
+
+                    var url = "https://assets.avalanche.ca/graphics/forecast/rating/norating-norating-norating.svg";
+                    if (ratings != null) {
+                        // here the ratings numbers will be replaced with the word ratings, which are then used to get the corresponding svg
+                        const str  = ratings;
+                        const result = str.replace(new RegExp('0','g'),'norating').replace(new RegExp('1','g'),'low').replace(new RegExp('2','g'),'moderate').replace(new RegExp('3','g'),'considerable').replace(new RegExp('4','g'),'high').replace(new RegExp('5','g'),'extreme');
+
+                        url =  "https://assets.avalanche.ca/graphics/forecast/rating/" + result + ".svg";
+
+                        console.log(url + ", " + forecastURL);
+                    }
+                    
+                    L.marker(latlng, {
+                        icon: L.icon({
+                            iconSize:[60,60],
+                            iconAnchor: [30,30],
+
+                            iconUrl: url
+                        })
+                    }).addTo(mymap);
+
+                }).fail(function(data){
+                    L.marker(latlng, {
+                        icon: L.icon({
+                            iconSize:[60,60],
+                            iconAnchor: [30,30],
+
+                            iconUrl: "https://assets.avalanche.ca/graphics/forecast/misc/link.svg"
+                        })
+                    }).addTo(mymap);
+                });
+            }
+
             // Display avy Canada MIN reports on the map 
             $.getJSON(avyCanadaMIN_URL, function(dataSubs){
                 var clusters = L.markerClusterGroup();
