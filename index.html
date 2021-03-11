@@ -261,6 +261,15 @@
                             iconUrl: "https://assets.avalanche.ca/graphics/forecast/misc/link.svg"
                         })
                     }).addTo(mymap);
+                    mar.on('click',function(){
+                        // Check to see if the value contains an externalUrl, if not use default url, if it does use externalUrl
+                        if (feature.properties.externalUrl == null) {
+                            url = feature.properties.url;
+                        }else{
+                            url = feature.properties.externalUrl;
+                        }
+                        window.location = url;
+                    })
                 });
             }
 
@@ -306,7 +315,13 @@
                     }
                 // }).addTo(mymap);
                 });
+
+                var mixed = { 
+                    "MIN Reports": clusters
+                }
+
                 mymap.addLayer(clusters);
+                L.control.layers(null, mixed).addTo(mymap);
             })
 
             // Display fatality reports
@@ -450,7 +465,7 @@
                     "ACIS Weather Stations": clusters //cluster of ACIS weather stations
                 }
 
-                L.control.layers(null, mixed).addTo(mymap)
+                L.control.layers(null, mixed).addTo(mymap);
             });
         </script>
     </body>
