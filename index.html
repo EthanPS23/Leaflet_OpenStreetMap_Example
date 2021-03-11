@@ -204,23 +204,22 @@
 
                 var marks = L.geoJson(geoJson,{
                     pointToLayer: function (feature,latlng) {
+                        // function needs to be called to create markers as another getJSON will be used. Due to getJSON being asynch
+                        // it will not be able to return a value. Thus, markers will be added to the map within the next getJSON
                         avyCanadaRegionRating(feature,latlng);
                     }
                 });
             })
 
+            // Fucntion obtains the forecasted rating for the given region and the adds the marker to the map
             function avyCanadaRegionRating(feature,latlng){
                 var ratings;
                 var combinedRatings;
                 var forecastURL = "https://www.avalanche.ca" + feature.properties.forecastUrl;
                 $.getJSON(forecastURL, function(data){
-                    var testAlp = data.iconSet[0].ratings.alp;
-                    var testTln = data.iconSet[0].ratings.tln;
-                    var testBtl = data.iconSet[0].ratings.btl;
-                    // console.log(testAlp + "-" + testTln + "-" + testBtl + ", " + forecastURL);
-                    combinedRatings = data.iconSet[0].ratings.alp;
-                    combinedRatings = combinedRatings + "-" + data.iconSet[0].ratings.tln;
-                    combinedRatings = combinedRatings + "-" + data.iconSet[0].ratings.btl;
+                    combinedRatings = data.iconSet[0].ratings.alp; // obtains the alpine rating
+                    combinedRatings = combinedRatings + "-" + data.iconSet[0].ratings.tln; // obtains the treeline rating, and combines with alpine rating
+                    combinedRatings = combinedRatings + "-" + data.iconSet[0].ratings.btl; // obtains the below tree line rating, and combines with alpine and treeline rating
                     //console.log(combinedRatings + ", " + forecastURL);
                     ratings = combinedRatings;
 
@@ -230,11 +229,10 @@
                         const str  = ratings;
                         const result = str.replace(new RegExp('0','g'),'norating').replace(new RegExp('1','g'),'low').replace(new RegExp('2','g'),'moderate').replace(new RegExp('3','g'),'considerable').replace(new RegExp('4','g'),'high').replace(new RegExp('5','g'),'extreme');
 
-                        url =  "https://assets.avalanche.ca/graphics/forecast/rating/" + result + ".svg";
-
-                        console.log(url + ", " + forecastURL);
+                        url =  "https://assets.avalanche.ca/graphics/forecast/rating/" + result + ".svg"; // creates the url containing the forecast rating svg
                     }
                     
+                    // adds the marker to the map using the url to get a custom marker symbol for the region
                     L.marker(latlng, {
                         icon: L.icon({
                             iconSize:[60,60],
@@ -244,7 +242,8 @@
                         })
                     }).addTo(mymap);
 
-                }).fail(function(data){
+                }).fail(function(data){ // if the getJSON fails then it may be because the forecastURL has a separate address, thus
+                    // the link svg will be used
                     L.marker(latlng, {
                         icon: L.icon({
                             iconSize:[60,60],
