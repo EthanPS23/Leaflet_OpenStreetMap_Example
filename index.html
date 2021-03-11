@@ -233,7 +233,7 @@
                     }
                     
                     // adds the marker to the map using the url to get a custom marker symbol for the region
-                    L.marker(latlng, {
+                    var mar = L.marker(latlng, {
                         icon: L.icon({
                             iconSize:[60,60],
                             iconAnchor: [30,30],
@@ -241,10 +241,19 @@
                             iconUrl: url
                         })
                     }).addTo(mymap);
+                    mar.on('click',function(){
+                        // Check to see if the value contains an externalUrl, if not use default url, if it does use externalUrl
+                        if (feature.properties.externalUrl == null) {
+                            url = feature.properties.url;
+                        }else{
+                            url = feature.properties.externalUrl;
+                        }
+                        window.location = url;
+                    })
 
                 }).fail(function(data){ // if the getJSON fails then it may be because the forecastURL has a separate address, thus
                     // the link svg will be used
-                    L.marker(latlng, {
+                    var mar = L.marker(latlng, {
                         icon: L.icon({
                             iconSize:[60,60],
                             iconAnchor: [30,30],
