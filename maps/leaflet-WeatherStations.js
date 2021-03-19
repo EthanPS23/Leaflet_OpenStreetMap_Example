@@ -40,7 +40,8 @@ $.getJSON("https://api.avalanche.ca/weather/stations", function(data){
         "Avalanche Canada Weather Stations": clusters //cluster of avy Canada weather stations
     }
 
-    L.control.layers(null, mixed).addTo(mymap)
+    mymap.addLayer(clusters);
+    // L.control.layers(null, mixed).addTo(mymap)
 })
 
 // Display ACIS weather stations on the map
@@ -62,5 +63,6 @@ $.getJSON("http://localhost/stationsGEO.json", function(data){
         "ACIS Weather Stations": clusters //cluster of ACIS weather stations
     }
 
-    L.control.layers(null, mixed).addTo(mymap);
+    mymap.addLayer(clusters);
+    // L.control.layers(null, mixed).addTo(mymap);
 });
